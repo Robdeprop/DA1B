@@ -39,6 +39,9 @@ package example.hello;
 
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
@@ -49,6 +52,8 @@ public class Server implements Hello {
     public String sayHello() {
         return "Hello, pizza!";
     }
+    
+    private InetAddress inetAddress;
 
     public static void main(String args[]) {
 
@@ -59,6 +64,11 @@ public class Server implements Hello {
         		e.printStackTrace();
         		}
         	
+            /*if (System.getSecurityManager() == null) {
+                System.setSecurityManager(new RMISecurityManager());
+            }*/
+            
+        	
             Server obj = new Server();
             Hello stub = (Hello) UnicastRemoteObject.exportObject(obj, 0);
 
@@ -67,9 +77,24 @@ public class Server implements Hello {
             registry.bind("Hello", stub);
 
             System.err.println("Server ready");
+            
+            new Server().start();
         } catch (Exception e) {
             System.err.println("Server exception: " + e.toString());
             e.printStackTrace();
         }
     }
+    
+    public void start() {
+
+    	try{
+            inetAddress = InetAddress.getLocalHost();
+        } catch (UnknownHostException e){
+        	System.err.println("Cannot instantiate IP resolver");
+            throw new RuntimeException(e);
+        }
+    	
+    	System.out.println(inetAddress);
+    }
+    	
 }
