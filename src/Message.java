@@ -8,6 +8,7 @@ public class Message {
 	private List<Integer> clocks;
 	private long arrivalTime;
 	private int id;
+	private int delay;
 	
 	public Message(int sender, int receiver, int messageId)
 	{
