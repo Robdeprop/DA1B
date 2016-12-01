@@ -43,29 +43,15 @@ import java.util.LinkedList;
 
 
 public interface DeProp_RMI extends Remote {
-    
-	String sayHello() throws RemoteException;
-	/*
 	
-	/* 
-	 * sends a message to a remote destination process
-	 * String includes the url location of the remote destination 
-	 */
 	public void send(int receiverIndex, Message message, int delayTime) throws RemoteException;
 	
-	/*
-	 * Receives a message
-	 */
+	public void reset();
+	
 	public void receive(Message message) throws RemoteException;
-	
-	/*
-	 * Get index of the current process
-	 */
+
 	public int getIndex() throws RemoteException;
-	
-	/*
-	 * List of all received messages by this process (might not be needed)
-	 */
+
 	public LinkedList<Message> getMessages() throws RemoteException;
 
 }

@@ -53,21 +53,26 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	
 	private ArrayList<DeProp_RMI> processes;
 	private String processURL;
+	private int clockCounter;
+	private ArrayList<Integer> clocks;
+	private ArrayList<Message> receivedMessages;
+	
+	//private ArrayList<MessagesVector> 
 	
 	private int index;
 
     public DeProp(int totalProcesses, String processURL) {
     	this.processURL = processURL;
-    }
-
-    public String sayHello() {
-        return "Hello, pizza!";
+    	this.clockCounter = 0;
+		this.clocks = new ArrayList<Integer>();
+		this.receivedMessages = new ArrayList<Message>();
     }
 
 	@Override
@@ -99,7 +104,7 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	@Override
 	public int getIndex() throws RemoteException {
 		// TODO Auto-generated method stub
-		return 0;
+		return this.index;
 	}
 
 	@Override
@@ -133,6 +138,14 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	        }
 	        //it.remove(); // avoids a ConcurrentModificationException
 	    }
+	}
+
+	@Override
+	public void reset() {
+		this.clockCounter = 0;
+		this.clocks = new ArrayList<Integer>();
+		this.receivedMessages = new ArrayList<Message>();
+		
 	}
  
 }

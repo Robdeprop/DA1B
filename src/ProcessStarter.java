@@ -26,7 +26,7 @@ public class ProcessStarter {
     private InetAddress inetAddress;
     String localIpAddress;
     private static final String PROCESS_PREFIX = "DePropSESProcess";
-    private static final int INSTANTIATION_DELAY = 1000;
+    private static final int INSTANTIATION_DELAY = 10000;
     
     private ArrayList<String> ipAddressesInNetwork;
 
@@ -72,10 +72,17 @@ public class ProcessStarter {
 	        
 	        if(ipAddressesInNetwork.length > 1)
 	        {
+	        	System.out.println("Sleeping for " + INSTANTIATION_DELAY + "ms to wait for other servers");;
+	        	try {
+	                Thread.sleep(INSTANTIATION_DELAY);
+	            } catch (InterruptedException e) {
+	                throw new RuntimeException(e);
+	            }
+	        	
 		        ArrayList<String> remoteURLs = new ArrayList<String>();
 		        for(String ip : ipAddressesInNetwork)
 		        {
-		        	if(ip != localIpAddress)
+		        	if(!ip.equals(localIpAddress))
 		        	{
 		        		for(int i = 0; i < numOfLocalProcesses; i++)
 		        		{
@@ -111,7 +118,7 @@ public class ProcessStarter {
 	        }
 	        
 	        try {
-                Thread.sleep(INSTANTIATION_DELAY);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
