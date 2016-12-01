@@ -50,11 +50,19 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class DeProp implements DeProp_RMI, Runnable, Serializable {
+	
+	private HashMap<String, DeProp_RMI> processes;
+	private String processURL;
 
-    public DeProp(int totalProcesses, int processIndex) {}
+    public DeProp(int totalProcesses, String processURL) {
+    	this.processURL = processURL;
+    }
 
     public String sayHello() {
         return "Hello, pizza!";
@@ -63,19 +71,30 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
+		System.out.println("Thread of process " + this.processURL + " started");
 		
+		try {
+			this.sendSomethingToEveryone();
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	@Override
 	public void send(String url, Message message) throws RemoteException {
-		// TODO Auto-generated method stub
-		
+		try {
+    		System.out.println(this.processURL + " is sending message " + message.toString());
+            processes.get(url).receive(message);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
 	}
 
 	@Override
 	public void receive(Message message) throws RemoteException {
 		// TODO Auto-generated method stub
-		
+		System.out.println(this.processURL + " got message " + message.toString());
 	}
 
 	@Override
@@ -88,6 +107,33 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	public LinkedList<Message> getMessages() throws RemoteException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public HashMap<String, DeProp_RMI> getProcesses() {
+		return processes;
+	}
+
+	public void setProcesses(HashMap<String, DeProp_RMI> processes) {
+		this.processes = processes;
+		Iterator it = processes.entrySet().iterator();
+	    while (it.hasNext()) {
+	    	Map.Entry pair = (Map.Entry)it.next();
+	        //System.out.println("Process " + this.processURL + " knows there is a process with URL " + pair.getKey() + ":");
+	        //System.out.println(pair.getValue());
+	        //it.remove(); // avoids a ConcurrentModificationException
+	    }
+	}
+
+	public void sendSomethingToEveryone() throws RemoteException {
+		Iterator it = processes.entrySet().iterator();
+	    while (it.hasNext()) {
+	        Map.Entry pair = (Map.Entry)it.next();
+	        if(pair.getKey() != this.processURL)
+	        {
+	        	this.send((String) pair.getKey(), new Message(this.processURL, (String) pair.getKey(), 1));
+	        }
+	        //it.remove(); // avoids a ConcurrentModificationException
+	    }
 	}
  
 }

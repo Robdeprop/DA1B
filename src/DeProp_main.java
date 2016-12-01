@@ -16,33 +16,21 @@ import java.util.Enumeration;
 
 public class DeProp_main {
 	
-	private static final int TOTAL_PROCESSES = 2;
+	private static final int TOTAL_LOCAL_PROCESSES = 2;
+	private static final String[] ipAddressesInNetwork = {"192.168.1.25"};
 
     public static void main(String args[]) {
-    	System.out.println("IP Addresses in network:");
-    	try {
-            Enumeration nis = NetworkInterface.getNetworkInterfaces();
-            while(nis.hasMoreElements())
-            {
-                NetworkInterface ni = (NetworkInterface) nis.nextElement();
-                Enumeration ias = ni.getInetAddresses();
-                while (ias.hasMoreElements())
-                {
-                    InetAddress ia = (InetAddress) ias.nextElement();
-                    System.out.println(ia.getHostAddress());
-                }
-
-            }
-        } catch (SocketException ex) {
-            System.out.println(ex);
-        }
+    	System.out.println("IP Addresses in the network that should run this code:");
+    	for(String ip : ipAddressesInNetwork)
+    	{
+    		System.out.println(ip);
+    	}
+    	System.out.println("--------------");
     	
-    	
-
         try {
         	try {
         		java.rmi.registry.LocateRegistry.createRegistry(1099);
-        		} catch (RemoteException e) {
+        		}catch (RemoteException e) {
         		e.printStackTrace();
         		}
         	
@@ -52,9 +40,9 @@ public class DeProp_main {
                 System.setSecurityManager(new RMISecurityManager());
             }
             
-            System.err.println("Server ready");
+            System.out.println("Server ready!");
             
-            new ProcessStarter().spawnProcesses(TOTAL_PROCESSES);
+            new ProcessStarter().spawnProcesses(TOTAL_LOCAL_PROCESSES, ipAddressesInNetwork);
         } catch (Exception e) {
             System.err.println("Server exception: " + e.toString());
             e.printStackTrace();
