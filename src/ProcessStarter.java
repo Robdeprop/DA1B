@@ -40,15 +40,17 @@ public class ProcessStarter {
         
         System.out.println(inetAddress);
         
-        String[] processURLs = new String[numOfLocalProcesses];
+        String[] processURLs = new String[numOfLocalProcesses]; // ADD A + 1 HERE FOR HARDCODED IP
         
         for(int i = 0; i < numOfLocalProcesses; i++)
         {
-        	processURLs[i] = "rmi://localhost/SESprocess" + (i + 1);
+        	processURLs[i] = "rmi://localhost/SESprocess" + i;
         }
         
-        //processURLs[numOfLocalProcesses] = "rmi://131.180.13.238/SESprocess1";
-        //processURLs[numOfLocalProcesses + 1] = "rmi://131.180.13.238/SESprocess2";
+        // TO HARDCODE IP ADDRESSES:
+        //processURLs[numOfLocalProcesses] = "rmi://192.168.43.213/SESprocess0";
+        
+        
         processes = new ArrayList<DeProp_RMI>();
 
         //bind local processes and locate remote ones
