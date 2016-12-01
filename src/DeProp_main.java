@@ -19,6 +19,25 @@ public class DeProp_main {
 	private static final int TOTAL_PROCESSES = 2;
 
     public static void main(String args[]) {
+    	System.out.println("IP Addresses in network:");
+    	try {
+            Enumeration nis = NetworkInterface.getNetworkInterfaces();
+            while(nis.hasMoreElements())
+            {
+                NetworkInterface ni = (NetworkInterface) nis.nextElement();
+                Enumeration ias = ni.getInetAddresses();
+                while (ias.hasMoreElements())
+                {
+                    InetAddress ia = (InetAddress) ias.nextElement();
+                    System.out.println(ia.getHostAddress());
+                }
+
+            }
+        } catch (SocketException ex) {
+            System.out.println(ex);
+        }
+    	
+    	
 
         try {
         	try {

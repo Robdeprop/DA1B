@@ -50,6 +50,7 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.LinkedList;
 
 public class DeProp implements DeProp_RMI, Runnable, Serializable {
 
@@ -63,6 +64,30 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	public void run() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	@Override
+	public void send(String url, Message message) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void receive(Message message) throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int getIndex() throws RemoteException {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public LinkedList<Message> getMessages() throws RemoteException {
+		// TODO Auto-generated method stub
+		return null;
 	}
  
 }

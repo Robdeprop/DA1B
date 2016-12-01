@@ -46,7 +46,9 @@ public class ProcessStarter {
         {
         	processURLs[i] = "rmi://localhost/SESprocess" + (i + 1);
         }
-
+        
+        //processURLs[numOfLocalProcesses] = "rmi://131.180.13.238/SESprocess1";
+        //processURLs[numOfLocalProcesses + 1] = "rmi://131.180.13.238/SESprocess2";
         processes = new ArrayList<DeProp_RMI>();
 
         //bind local processes and locate remote ones
@@ -135,7 +137,8 @@ public class ProcessStarter {
 			for (InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses())
 			{
 				String hostAddress = interfaceAddress.getAddress().getHostAddress();
-				ipAddresses.add(hostAddress.toString());						
+				ipAddresses.add(hostAddress.toString());			
+				System.out.println("Found IP: " + hostAddress.toString());
 			}
         }
         
