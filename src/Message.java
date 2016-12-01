@@ -3,17 +3,17 @@
 import java.util.List;
 
 public class Message {
-	private String senderURL;
-	private String receiverURL;
+	private int senderIndex;
+	private int receiverIndex;
 	private List<Integer> clocks;
 	private long arrivalTime;
 	private int id;
 	private int delay;
 	
-	public Message(String senderURL, String receiverURL, int messageId)
+	public Message(int senderIndex, int receiverIndex, int messageId)
 	{
-		this.senderURL = senderURL;
-		this.receiverURL = receiverURL;
+		this.senderIndex = senderIndex;
+		this.receiverIndex = receiverIndex;
 		this.setId(messageId);
 	}
 
@@ -35,6 +35,6 @@ public class Message {
 	
 	public String toString()
 	{
-		return "Message{ sender=\"" + this.senderURL + "\", receiver=\"" + this.receiverURL + "\", id=\"" + this.id + "\"}";
+		return "Message{ sender=\"" + this.senderIndex + "\", receiver=\"" + this.receiverIndex + "\", id=\"" + this.id + "\"}";
 	}
 }

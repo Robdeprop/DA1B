@@ -12,14 +12,15 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class ProcessStarter {
 
     private static final String RMI_PREFIX = "rmi://";
     short ipNetworkPrefixLength = 22;
 
-    private HashMap<String, DeProp_RMI> processes;
+    private TreeMap<String, DeProp_RMI> processes;
     private ArrayList<DeProp_RMI> localProcesses;
     private Enumeration<NetworkInterface> networkInterfaces;
     private InetAddress inetAddress;
@@ -50,7 +51,7 @@ public class ProcessStarter {
         String[] processURLs = new String[numOfLocalProcesses]; // ADD A + 1 HERE FOR HARDCODED IP
         
         
-        processes = new HashMap<String, DeProp_RMI>();
+        processes = new TreeMap<String, DeProp_RMI>();
         localProcesses = new ArrayList<DeProp_RMI>();
         DeProp_RMI process;
         try {
@@ -95,9 +96,18 @@ public class ProcessStarter {
 	        }
 	        
 	        
+	        ArrayList<DeProp_RMI> processList = new ArrayList<DeProp_RMI>();
+	        
+	        for(Map.Entry<String, DeProp_RMI> entry : processes.entrySet()) {
+	        	  String key = entry.getKey();
+	        	  DeProp_RMI value = entry.getValue();
+	        	  System.out.println(key + " => " + value);
+	        	  processList.add(value);
+	        }
+	        
 	        for(DeProp_RMI localProcess : localProcesses)
 	        {
-	        	((DeProp) localProcess).setProcesses(processes);
+	        	((DeProp) localProcess).setProcesses(processList);
 	        }
 	        
 	        try {

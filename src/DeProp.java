@@ -57,8 +57,10 @@ import java.util.Map;
 
 public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	
-	private HashMap<String, DeProp_RMI> processes;
+	private ArrayList<DeProp_RMI> processes;
 	private String processURL;
+	
+	private int index;
 
     public DeProp(int totalProcesses, String processURL) {
     	this.processURL = processURL;
@@ -82,13 +84,10 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	}
 
 	@Override
-	public void send(String url, Message message) throws RemoteException {
-		try {
-    		System.out.println(this.processURL + " is sending message " + message.toString());
-            processes.get(url).receive(message);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
+	public void send(int receiverIndex, Message message, int delayTime) throws RemoteException {
+		System.out.println(this.processURL + " (index " + this.index + ") is sending message " + message.toString());
+		MessageDelayer delayedMessage = new MessageDelayer(processes.get(receiverIndex), message, delayTime);
+		new Thread(delayedMessage).start();
 	}
 
 	@Override
@@ -109,28 +108,28 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 		return null;
 	}
 
-	public HashMap<String, DeProp_RMI> getProcesses() {
+	public ArrayList<DeProp_RMI> getProcesses() {
 		return processes;
 	}
 
-	public void setProcesses(HashMap<String, DeProp_RMI> processes) {
+	public void setProcesses(ArrayList<DeProp_RMI> processes) {
 		this.processes = processes;
-		Iterator it = processes.entrySet().iterator();
-	    while (it.hasNext()) {
-	    	Map.Entry pair = (Map.Entry)it.next();
-	        //System.out.println("Process " + this.processURL + " knows there is a process with URL " + pair.getKey() + ":");
-	        //System.out.println(pair.getValue());
-	        //it.remove(); // avoids a ConcurrentModificationException
-	    }
+		for(int i = 0; i < processes.size(); i++)
+		{
+			if(processes.get(i) == this)
+			{
+				this.index = i;
+				System.out.println("Process " + processURL + " found that its own ID is " + this.index);
+			}
+		}
 	}
 
 	public void sendSomethingToEveryone() throws RemoteException {
-		Iterator it = processes.entrySet().iterator();
-	    while (it.hasNext()) {
-	        Map.Entry pair = (Map.Entry)it.next();
-	        if(pair.getKey() != this.processURL)
+		for(int i = 0; i < processes.size(); i++)
+		{
+	        if(i != this.index)
 	        {
-	        	this.send((String) pair.getKey(), new Message(this.processURL, (String) pair.getKey(), 1));
+	        	this.send(i, new Message(this.index, i, 1), 1000);
 	        }
 	        //it.remove(); // avoids a ConcurrentModificationException
 	    }

@@ -51,7 +51,7 @@ public interface DeProp_RMI extends Remote {
 	 * sends a message to a remote destination process
 	 * String includes the url location of the remote destination 
 	 */
-	public void send(String url, Message message) throws RemoteException;
+	public void send(int receiverIndex, Message message, int delayTime) throws RemoteException;
 	
 	/*
 	 * Receives a message
