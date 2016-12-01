@@ -27,9 +27,11 @@ public class DeProp_main {
         		e.printStackTrace();
         		}
         	
-            /*if (System.getSecurityManager() == null) {
+        	
+        	System.setProperty("java.security.policy","./my.policy");
+            if (System.getSecurityManager() == null) {
                 System.setSecurityManager(new RMISecurityManager());
-            }*/
+            }
             
             System.err.println("Server ready");
             
