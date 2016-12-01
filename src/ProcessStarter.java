@@ -135,7 +135,6 @@ public class ProcessStarter {
 			for (InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses())
 			{
 				String hostAddress = interfaceAddress.getAddress().getHostAddress();
-				System.out.println("TEST: " + hostAddress);
 				ipAddresses.add(hostAddress.toString());						
 			}
         }
