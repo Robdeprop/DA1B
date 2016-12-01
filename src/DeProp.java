@@ -35,72 +35,34 @@
  * intended for use in the design, construction, operation or
  * maintenance of any nuclear facility.
  */
-package example.hello;
 
-import java.rmi.registry.LocateRegistry;
+
 import java.rmi.registry.Registry;
-import java.util.List;
+import java.rmi.registry.LocateRegistry;
+import java.io.Serializable;
+import java.net.InetAddress;
+import java.net.InterfaceAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.rmi.RMISecurityManager;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
+import java.util.Enumeration;
 
-public class Client {
+public class DeProp implements DeProp_RMI, Runnable, Serializable {
 
-    private Client() {}
-    
-    private List<Message> sentMessages;
-    private List<Message> receivedMessages;
-    
-    private List<Integer> clocks;
-    
-    private int totalProcesses;
-    
-    private List<Message> pendingMessages;
+    public DeProp(int totalProcesses, int processIndex) {}
 
-    public static void main(String[] args) {
+    public String sayHello() {
+        return "Hello, pizza!";
+    }
 
-        String host = (args.length < 1) ? null : args[0];
-        try {
-            Registry registry = LocateRegistry.getRegistry(host);
-            Hello stub = (Hello) registry.lookup("Hello");
-            String response = stub.sayHello();
-            System.out.println("response: " + response);
-        } catch (Exception e) {
-            System.err.println("Client exception: " + e.toString());
-            e.printStackTrace();
-        }
-    }
-    
-    public void send(Message message)
-    {
-    	
-    }
-    
-    public void receive(Message message)
-    {
-    	if (!canBeDelivered(message))
-    	{
-    		pendingMessages.add(message);
-    	}
-    	else
-    	{
-            // DELIVER THE MESSAGE HERE
-    		
-    		
-    		// NOW DELIVER BUFFERED MESSAGES
-            /*List<Message> delivered = new LinkedList<Message>();
-            for (Message m : pendingMessages) {
-                if (isDeliveryAllowed(m)) {
-                    deliver(m);
-                    delivered.add(m);
-                }
-            }
-            pendingBuffer.removeAll(delivered);*/
-        }
-    }
-    
-    public Boolean canBeDelivered(Message message)
-    {
-    	// Implement the decision thing that decides if a message can be delivered
-    	return true;
-    }
-    
-    
+	@Override
+	public void run() {
+		// TODO Auto-generated method stub
+		
+	}
+ 
 }
