@@ -22,11 +22,13 @@ public class ProcessStarter {
     private Enumeration<NetworkInterface> networkInterfaces;
     private InetAddress inetAddress;
     private static final int INSTANTIATION_DELAY = 10000;
+    
+    private ArrayList<String> ipAddressesInNetwork;
 
     /**
      * Launches server instance
      */
-    public void spawnProcesses() {
+    public void spawnProcesses(int numOfLocalProcesses) {
         
         //instantiating InetAddress to resolve local IP
         try{
@@ -36,16 +38,24 @@ public class ProcessStarter {
             throw new RuntimeException(e);
         }
         
-        String[] urls = new String[]{"rmi://localhost/process1", "rmi://localhost/process2", "rmi://localhost/process3"};
+        System.out.println(inetAddress);
+        
+        String[] processURLs = new String[numOfLocalProcesses];
+        
+        for(int i = 0; i < numOfLocalProcesses; i++)
+        {
+        	processURLs[i] = "rmi://localhost/SESprocess" + (i + 1);
+        }
+
         processes = new ArrayList<DeProp_RMI>();
 
         //bind local processes and locate remote ones
         try {
             DeProp_RMI process;
             int processIndex = 0;
-            for (String url : urls) {
+            for (String url : processURLs) {
                 if (isProcessLocal(url)) {
-                    process = new DeProp(urls.length, processIndex);
+                    process = new DeProp(processURLs.length, processIndex);
                     System.out.println("Process " + processIndex + " is local.");
                     new Thread((DeProp) process).start();
                     Naming.bind(url, process);
@@ -64,7 +74,7 @@ public class ProcessStarter {
             }
             System.out.println("And looking them up.");
 
-            for (String url : urls) {
+            for (String url : processURLs) {
                 if (!isProcessLocal(url)) {
                     process = (DeProp_RMI) Naming.lookup(url);
                     System.out.println("Found remote process with URL " + url);
@@ -88,9 +98,11 @@ public class ProcessStarter {
     	boolean isLocal = false;
     	
     	//LOGGER.debug("======================================================================");
-    	for (String ipAddress: this.getIpAddresses()){
-    		isLocal = isLocal || url.startsWith(RMI_PREFIX + ipAddress);
-    	//	LOGGER.debug(ipAddress.toString());
+    	
+    	ipAddressesInNetwork = this.getIpAddressesInNetwork();
+    	for (String ip: ipAddressesInNetwork)
+    	{
+    		isLocal = isLocal || url.startsWith(RMI_PREFIX + ip);
     	}
     	//LOGGER.debug(inetAddress.getHostAddress());
     	//LOGGER.debug("----------------------------------------------------------------------");
@@ -107,7 +119,7 @@ public class ProcessStarter {
         return isLocal;
     }
 
-    private String[] getIpAddresses() {
+    private ArrayList<String> getIpAddressesInNetwork() {
         try {
             networkInterfaces = NetworkInterface.getNetworkInterfaces();
         } catch (SocketException e5) {
@@ -122,16 +134,13 @@ public class ProcessStarter {
 
 			for (InterfaceAddress interfaceAddress : networkInterface.getInterfaceAddresses())
 			{
-				//if (ipNetworkPrefixLength == interfaceAddress.getNetworkPrefixLength())
-				//{
-					ipAddresses.add( interfaceAddress.getAddress().getHostAddress().toString() );						
-				//}
+				String hostAddress = interfaceAddress.getAddress().getHostAddress();
+				System.out.println("TEST: " + hostAddress);
+				ipAddresses.add(hostAddress.toString());						
 			}
         }
-
-        String[] result = new String[ipAddresses.size()];
-
-        return ipAddresses.toArray(result);
+        
+        return ipAddresses;
     }
 
 }
