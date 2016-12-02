@@ -16,7 +16,7 @@ import java.util.Enumeration;
 
 public class DeProp_main {
 	
-	private static final int TOTAL_LOCAL_PROCESSES = 2;
+	private static final int TOTAL_LOCAL_PROCESSES = 4;
 	private static final String[] ipAddressesInNetwork = {"192.168.1.25"};
 
     public static void main(String args[]) {

@@ -128,6 +128,14 @@ public class ProcessStarter {
 	        {
 	        	new Thread((DeProp) localProcess).start();
 	        }
+	        
+	        
+	        System.out.println("Program will keep executing for 30s");
+	        try {
+                Thread.sleep(30000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
 	
 	        
 	    } catch (MalformedURLException | RemoteException | AlreadyBoundException | NotBoundException e) {
