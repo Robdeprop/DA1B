@@ -1,42 +1,3 @@
-/*
- * Copyright (c) 2004, Oracle and/or its affiliates. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or
- * without modification, are permitted provided that the following
- * conditions are met:
- *
- * -Redistributions of source code must retain the above copyright
- *  notice, this list of conditions and the following disclaimer.
- *
- * -Redistribution in binary form must reproduce the above copyright
- *  notice, this list of conditions and the following disclaimer in
- *  the documentation and/or other materials provided with the
- *  distribution.
- *
- * Neither the name of Oracle nor the names of
- * contributors may be used to endorse or promote products derived
- * from this software without specific prior written permission.
- *
- * This software is provided "AS IS," without a warranty of any
- * kind. ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND
- * WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY
- * EXCLUDED. SUN MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL
- * NOT BE LIABLE FOR ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF
- * USING, MODIFYING OR DISTRIBUTING THIS SOFTWARE OR ITS
- * DERIVATIVES. IN NO EVENT WILL SUN OR ITS LICENSORS BE LIABLE FOR
- * ANY LOST REVENUE, PROFIT OR DATA, OR FOR DIRECT, INDIRECT,
- * SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE DAMAGES, HOWEVER
- * CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY, ARISING OUT OF
- * THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF SUN HAS BEEN
- * ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- *
- * You acknowledge that Software is not designed, licensed or
- * intended for use in the design, construction, operation or
- * maintenance of any nuclear facility.
- */
-
-
 import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.io.Serializable;
@@ -148,7 +109,7 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
             
         } else {
             this.pendingMessages.add(message);
-            System.out.println("However, it was added to the pending messages...");
+            System.out.println("However, "+message.toString()+" was added to the pending messages...");
         }
 	}
 	
@@ -156,16 +117,21 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	{
         for (Message currentMessage : this.pendingMessages)
         {
+        	System.out.println("CHECK NOW: Can " + currentMessage.toString() + " be accepted now?");
             if (this.canBeDelivered(currentMessage))
             {
             	this.pendingMessages.remove(currentMessage);
+            	System.out.println("Removed this message: " + currentMessage.toString());
                 this.acceptMessage(currentMessage);
                 return;
             }
+            System.out.println("Nope...");
         }
-        
-        System.out.println("There are " + this.pendingMessages.size() + " pending messages in " + this.processURL + ", but none can be delivered right now");
-	}
+        if(this.pendingMessages.size() > 0)
+        {
+        	System.out.println("There are " + this.pendingMessages.size() + " pending messages in " + this.processURL + ", but none can be delivered right now");
+        }
+    }
 	
 	private ArrayList<Integer> mergeLocalVectorClocks(List<Integer> localVectorClock1, List<Integer> localVectorClock2)
 	{
@@ -214,6 +180,8 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	        }
 	        this.latestSentMessages.put(receiverId, storeLocalVectorClock);
 	    }
+	    
+	    System.out.println("-- Message " + message.toString() + " was accepted --");
 		
 		// Now that the a new message has been received, pending messages might be able to be received now
 		attemptPendingMessageDelivery();

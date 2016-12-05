@@ -1,10 +1,15 @@
 
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class Message {
+public class Message implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private int senderIndex;
 	private int receiverIndex;
 	private long arrivalTime;

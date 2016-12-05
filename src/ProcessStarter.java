@@ -12,6 +12,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -131,7 +132,7 @@ public class ProcessStarter {
         				boundAProcess = true;
 	        			ownProcess = new DeProp(totalProcesses, localProcessURL, processURLs.indexOf(localProcessURL));
 	        			new Thread((DeProp) ownProcess).start();
-	        			Naming.bind(localProcessURL, ownProcess);
+	        			Naming.bind(localProcessURL, (DeProp_RMI) UnicastRemoteObject.exportObject(ownProcess));
 	        			ownProcessURL = localProcessURL;
 	                    System.out.println("Process " + localProcessURL + " instantiated!");
         			}

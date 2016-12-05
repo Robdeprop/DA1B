@@ -32,6 +32,19 @@ public class TestSetup {
 			e2.printStackTrace();
 		}
 		System.out.println("GOT RAND: " + myRand);
+		
+		
+		// RESET all processes
+		for(DeProp_RMI process : processes)
+		{
+			try {
+				process.reset();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 		DeProp_RMI process1 = processes.get(0);
         DeProp_RMI process2 = processes.get(1);
         try{

@@ -23,6 +23,17 @@ public class Setup {
 		ProcessStarter p = new ProcessStarter();
 		p.start(ipAddressesInNetwork, true);
 		this.processes = p.getProcesses();
+		
+		// RESET all processes
+		for(DeProp_RMI process : processes)
+		{
+			try {
+				process.reset();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public ArrayList<DeProp_RMI> getProcesses()
