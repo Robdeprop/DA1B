@@ -16,8 +16,8 @@ import java.util.Enumeration;
 
 public class DeProp_main {
 	
-	private static final int TOTAL_LOCAL_PROCESSES = 4;
-	private static final String[] ipAddressesInNetwork = {"192.168.1.25"};
+	private static final int TOTAL_PROCESSES = 4;
+	private static final String[] ipAddressesInNetwork = {"localhost", "localhost"};
 
     public static void main(String args[]) {
     	System.out.println("IP Addresses in the network that should run this code:");
@@ -42,7 +42,19 @@ public class DeProp_main {
             
             System.out.println("Server ready!");
             
-            new ProcessStarter().spawnProcesses(TOTAL_LOCAL_PROCESSES, ipAddressesInNetwork);
+            ProcessStarter p = new ProcessStarter();
+            p.start(ipAddressesInNetwork, true);
+            
+            System.out.println("Program will keep executing for 30s");
+	        try {
+                Thread.sleep(30000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+	        
+	        p.logRandInt();
+	        
+	        
         } catch (Exception e) {
             System.err.println("Server exception: " + e.toString());
             e.printStackTrace();

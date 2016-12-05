@@ -10,8 +10,12 @@ import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -20,7 +24,7 @@ public class ProcessStarter {
     private static final String RMI_PREFIX = "rmi://";
     short ipNetworkPrefixLength = 22;
 
-    private TreeMap<String, DeProp_RMI> processes;
+    private ArrayList<DeProp_RMI> processes;
     private ArrayList<DeProp_RMI> localProcesses;
     private Enumeration<NetworkInterface> networkInterfaces;
     private InetAddress inetAddress;
@@ -29,11 +33,15 @@ public class ProcessStarter {
     private static final int INSTANTIATION_DELAY = 10000;
     
     private ArrayList<String> ipAddressesInNetwork;
+    
+    private String ownProcessURL;
+    private int ownProcessIndex;
+    private DeProp_RMI ownProcess = null;
 
     /**
      * Launches server instance
      */
-    public void spawnProcesses(int numOfLocalProcesses, String[] ipAddressesInNetwork) {
+    public void start(String[] ipAddressesInNetwork, Boolean spawnIfPossible) {
         
         //instantiating InetAddress to resolve local IP
         try{
@@ -44,78 +52,148 @@ public class ProcessStarter {
             throw new RuntimeException(e);
         }
         
-        int totalProcesses = ipAddressesInNetwork.length * numOfLocalProcesses;
+        int totalProcesses = ipAddressesInNetwork.length;
         
         System.out.println("Your own IP is: " + localIpAddress);
         
-        String[] processURLs = new String[numOfLocalProcesses]; // ADD A + 1 HERE FOR HARDCODED IP
+        //String[] processURLs = new String[totalProcesses];
+        
+        for(int i = 0; i < totalProcesses; i++)
+        {
+        	if(ipAddressesInNetwork[i].equals("localhost"))
+        	{
+        		ipAddressesInNetwork[i] = localIpAddress;
+        	}
+        }
+        
+        Arrays.sort(ipAddressesInNetwork);
+        
+        HashMap<String, Boolean> takenProcesses = new HashMap<String, Boolean>();
+        ArrayList<String> localProcesses = new ArrayList<String>();
+        ArrayList<String> processURLs = new ArrayList<String>();
+        String ownProcessURL = null;
+        
+        for(String ip : ipAddressesInNetwork)
+        {
+        	int procNum = 1;
+        	String processURL = "rmi://" + ip + "/" + PROCESS_PREFIX + procNum;
+        	while(takenProcesses.containsKey(processURL))
+        	{
+        		procNum++;
+        		processURL = "rmi://" + ip + "/" + PROCESS_PREFIX + procNum;
+        	}
+        	takenProcesses.put(processURL, false);
+        	processURLs.add(processURL);
+        	if(ip.equals(localIpAddress))
+        	{
+        		// Local process
+        		localProcesses.add(processURL);
+        	}
+        }
         
         
-        processes = new TreeMap<String, DeProp_RMI>();
-        localProcesses = new ArrayList<DeProp_RMI>();
-        DeProp_RMI process;
         try {
-	        for(int i = 0; i < numOfLocalProcesses; i++)
+        	//System.out.println("Names bound to RMI registry at host " + host + " and port " + port + ":");
+        	Registry registry;
+        	String[] boundNames;
+        	for(String ip : ipAddressesInNetwork)
 	        {
-	        	String processURL = "rmi://" + localIpAddress + "/" + PROCESS_PREFIX + i;
-	        	process = new DeProp(totalProcesses, processURL);
-	        	
-				Naming.bind(processURL, process);
-				
-	        	processes.put(processURL, process);
-	        	localProcesses.add(process);
-	            
-	            /*System.out.println("Process " + processURL + " is local.");
-	            new Thread((DeProp) process).start();*/
-	        }
-	        
-	        
-	        if(ipAddressesInNetwork.length > 1)
-	        {
-	        	System.out.println("Sleeping for " + INSTANTIATION_DELAY + "ms to wait for other servers");;
-	        	try {
-	                Thread.sleep(INSTANTIATION_DELAY);
-	            } catch (InterruptedException e) {
-	                throw new RuntimeException(e);
+	        	registry = LocateRegistry.getRegistry(ip, 1099);
+	        	boundNames = registry.list();
+	        	System.out.println("Bound:");
+	            for (final String name : boundNames)
+	            {
+	            	String processName = "rmi://" + ip + "/" + name;
+	            	if(takenProcesses.containsKey(processName))
+	            	{
+	            		takenProcesses.put(processName, true);
+	            		System.out.println("\t" + processName + " is taken");
+	            	}
+	            	else
+	            	{
+	            		System.out.println("\t" + processName + " is available");
+	            	}
 	            }
-	        	
-		        ArrayList<String> remoteURLs = new ArrayList<String>();
-		        for(String ip : ipAddressesInNetwork)
-		        {
-		        	if(!ip.equals(localIpAddress))
-		        	{
-		        		for(int i = 0; i < numOfLocalProcesses; i++)
-		        		{
-		        			String remoteURL = "rmi://" + ip + "/" + PROCESS_PREFIX + i;
-		        			remoteURLs.add(remoteURL);
-		        		}
-		        	}
-		        	for (String url : remoteURLs)
-		        	{
-		        		System.out.println("Connecting to remote process " + url + "...");
-			           
-						process = (DeProp_RMI) Naming.lookup(url);
-						
-			            System.out.println("Connected to remote process " + url + "!");
-			            processes.put(url, process);
-			        }
-		        }
 	        }
-	        
-	        
-	        ArrayList<DeProp_RMI> processList = new ArrayList<DeProp_RMI>();
-	        
-	        for(Map.Entry<String, DeProp_RMI> entry : processes.entrySet()) {
-	        	  String key = entry.getKey();
-	        	  DeProp_RMI value = entry.getValue();
-	        	  System.out.println(key + " => " + value);
-	        	  processList.add(value);
-	        }
-	        
-	        for(DeProp_RMI localProcess : localProcesses)
-	        {
-	        	((DeProp) localProcess).setProcesses(processList);
-	        }
+        	
+        	
+        	System.out.println("Unbound local processes:");
+        	
+        	boolean boundAProcess = false;
+        	for(String localProcessURL : localProcesses)
+        	{
+        		if(!takenProcesses.get(localProcessURL))
+        		{
+        			System.out.println(localProcessURL);
+        			// Bind this URL
+        			if(!boundAProcess && spawnIfPossible)
+        			{
+        				boundAProcess = true;
+	        			ownProcess = new DeProp(totalProcesses, localProcessURL, processURLs.indexOf(localProcessURL));
+	        			new Thread((DeProp) ownProcess).start();
+	        			Naming.bind(localProcessURL, ownProcess);
+	        			ownProcessURL = localProcessURL;
+	                    System.out.println("Process " + localProcessURL + " instantiated!");
+        			}
+        		}
+        	}
+        	
+            // Now wait until all processes are bound
+        	System.out.println("Waiting for all processes to be instantiated...");
+        	while(takenProcesses.containsValue(false))
+        	{
+        		
+        		for(String ip : ipAddressesInNetwork)
+    	        {
+    	        	registry = LocateRegistry.getRegistry(ip, 1099);
+    	        	boundNames = registry.list();
+    	            for (final String name : boundNames)
+    	            {
+    	            	String processName = "rmi://" + ip + "/" + name;
+    	            	if(takenProcesses.containsKey(processName) && !takenProcesses.get(processName))
+    	            	{
+    	            		takenProcesses.put(processName, true);
+    	            		System.out.println("\tNew remote process bound: " + processName);
+    	            	}
+    	            }
+    	        }
+        		
+        		System.out.print(".");
+        		try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+        	}
+        	
+        	
+        	
+        	
+        	
+        	processes = new ArrayList<DeProp_RMI>();
+        	for(String processURL : processURLs)
+        	{
+        		if(processURL.equals(ownProcessURL))
+        		{
+        			// Own process, start thread
+        			System.out.println("Added own process " + processURL);
+        			processes.add(ownProcess);
+        		}
+        		else
+        		{
+        			// Not own process, look up
+        			System.out.println("Connecting to remote process " + processURL + "...");
+        			processes.add((DeProp_RMI) Naming.lookup(processURL));
+        		}
+        	}
+        	
+        	System.out.println("Connected to all remote processes!");
+
+        	if(ownProcess != null)
+        	{
+        		((DeProp) ownProcess).setProcesses(processURLs);
+        	}
+
 	        
 	        try {
                 Thread.sleep(1000);
@@ -123,25 +201,37 @@ public class ProcessStarter {
                 throw new RuntimeException(e);
             }
 	        
-	        System.out.println("Whole system is connected, so start threads now");
-	        for(DeProp_RMI localProcess : localProcesses)
-	        {
-	        	new Thread((DeProp) localProcess).start();
-	        }
 	        
-	        
-	        System.out.println("Program will keep executing for 30s");
-	        try {
-                Thread.sleep(30000);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+
+		    System.out.println("Whole system is connected now");
 	
 	        
-	    } catch (MalformedURLException | RemoteException | AlreadyBoundException | NotBoundException e) {
+	    } catch (MalformedURLException | RemoteException | NotBoundException | AlreadyBoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
         
+    }
+    
+    public void logRandInt()
+    {
+    	if(ownProcess != null)
+    	{
+    		int getter = -1;
+			
+				try {
+					getter = ownProcess.getRandomInt();
+				} catch (RemoteException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+    		System.out.println("Exit. Rand int was " + getter);
+    	}
+    }
+    
+    public ArrayList<DeProp_RMI> getProcesses()
+    {
+    	return this.processes;
     }
 }

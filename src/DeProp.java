@@ -42,9 +42,12 @@ import java.rmi.registry.LocateRegistry;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.InterfaceAddress;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -55,6 +58,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	
@@ -68,9 +72,16 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	private ArrayList<Integer> localVectorClock;
 	
 	private int index;
+	
+	private int myRand;
 
-    public DeProp(int totalProcesses, String processURL) {
+    public DeProp(int totalProcesses, String processURL, int index) {
     	this.processURL = processURL;
+    	this.index = index;
+    	Random rand = new Random();
+    	myRand = rand.nextInt(50) + 1;
+    	
+    	System.out.println("Initiated DeProp with index " + index + " and rand " + myRand);
     }
     
 	@Override
@@ -240,14 +251,24 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 		return processes;
 	}
 
-	public void setProcesses(ArrayList<DeProp_RMI> processes) {
-		this.processes = processes;
-		for(int i = 0; i < processes.size(); i++)
+	public void setProcesses(ArrayList<String> processURLs) {
+		this.processes = new ArrayList<DeProp_RMI>();
+		for(int i = 0; i < processURLs.size(); i++)
 		{
-			if(processes.get(i) == this)
+			if(processURLs.get(i).equals(this.processURL))
 			{
 				this.index = i;
 				System.out.println("Process " + processURL + " found that its own ID is " + this.index);
+				this.processes.add(this);
+			}
+			else
+			{
+				try {
+					this.processes.add((DeProp_RMI) Naming.lookup(processURLs.get(i)));
+				} catch (MalformedURLException | RemoteException | NotBoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		this.reset();
@@ -262,6 +283,14 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	        }
 	        //it.remove(); // avoids a ConcurrentModificationException
 	    }
+	}
+
+	@Override
+	public int getRandomInt() throws RemoteException {
+		// TODO Auto-generated method stub
+		System.out.println("Somebody requested my random int of " + this.myRand);
+		this.myRand++;
+		return this.myRand;
 	}
  
 }
