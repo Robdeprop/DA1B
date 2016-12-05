@@ -8,12 +8,17 @@ import java.util.ArrayList;
 public class Setup {
 
 	private static final int TOTAL_LOCAL_PROCESSES = 2;
-	private static final String[] ipAddressesInNetwork = {"localhost", "localhost"};
+	private static final String[] ipAddressesInNetwork = {"localhost", "localhost", "localhost", "localhost"};
 	private static final String PROCESS_PREFIX = "DePropSESProcess";
 	
 	private ArrayList<DeProp_RMI> processes;
 	
 	public Setup()
+	{
+		this(false);
+	}
+	
+	public Setup(Boolean silent)
 	{
 		System.setProperty("java.security.policy","./my.policy");
         if (System.getSecurityManager() == null) {
@@ -21,7 +26,7 @@ public class Setup {
         }
         
 		ProcessStarter p = new ProcessStarter();
-		p.start(ipAddressesInNetwork, true);
+		p.start(ipAddressesInNetwork, true, silent);
 		this.processes = p.getProcesses();
 		
 		// RESET all processes

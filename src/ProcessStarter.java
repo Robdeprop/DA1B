@@ -42,7 +42,19 @@ public class ProcessStarter {
     /**
      * Launches server instance
      */
-    public void start(String[] ipAddressesInNetwork, Boolean spawnIfPossible) {
+    
+    public void start(String[] ipAddressesInNetwork, Boolean spawnIfPossible)
+    {
+    	start(ipAddressesInNetwork, spawnIfPossible, false);
+    }
+    
+    public void print(Boolean silent, String message)
+    {
+    	if(silent) { return; }
+    	System.out.println(message);
+    }
+    
+    public void start(String[] ipAddressesInNetwork, Boolean spawnIfPossible, Boolean silent) {
         
         //instantiating InetAddress to resolve local IP
         try{
@@ -55,7 +67,7 @@ public class ProcessStarter {
         
         int totalProcesses = ipAddressesInNetwork.length;
         
-        System.out.println("Your own IP is: " + localIpAddress);
+        print(silent, "Your own IP is: " + localIpAddress);
         
         //String[] processURLs = new String[totalProcesses];
         
@@ -82,6 +94,7 @@ public class ProcessStarter {
         	{
         		procNum++;
         		processURL = "rmi://" + ip + "/" + PROCESS_PREFIX + procNum;
+        		print(silent, processURL + " can be instantiated");
         	}
         	takenProcesses.put(processURL, false);
         	processURLs.add(processURL);
@@ -94,38 +107,34 @@ public class ProcessStarter {
         
         
         try {
-        	//System.out.println("Names bound to RMI registry at host " + host + " and port " + port + ":");
+        	//print(silent, "Names bound to RMI registry at host " + host + " and port " + port + ":");
         	Registry registry;
         	String[] boundNames;
         	for(String ip : ipAddressesInNetwork)
 	        {
 	        	registry = LocateRegistry.getRegistry(ip, 1099);
 	        	boundNames = registry.list();
-	        	System.out.println("Bound:");
+	        	print(silent, "Bound:");
 	            for (final String name : boundNames)
 	            {
 	            	String processName = "rmi://" + ip + "/" + name;
 	            	if(takenProcesses.containsKey(processName))
 	            	{
 	            		takenProcesses.put(processName, true);
-	            		System.out.println("\t" + processName + " is taken");
-	            	}
-	            	else
-	            	{
-	            		System.out.println("\t" + processName + " is available");
+	            		print(silent, "\t" + processName + " is taken");
 	            	}
 	            }
 	        }
         	
         	
-        	System.out.println("Unbound local processes:");
+        	print(silent, "Unbound local processes:");
         	
         	boolean boundAProcess = false;
         	for(String localProcessURL : localProcesses)
         	{
         		if(!takenProcesses.get(localProcessURL))
         		{
-        			System.out.println(localProcessURL);
+        			print(silent, localProcessURL);
         			// Bind this URL
         			if(!boundAProcess && spawnIfPossible)
         			{
@@ -134,13 +143,13 @@ public class ProcessStarter {
 	        			new Thread((DeProp) ownProcess).start();
 	        			Naming.bind(localProcessURL, (DeProp_RMI) UnicastRemoteObject.exportObject(ownProcess));
 	        			ownProcessURL = localProcessURL;
-	                    System.out.println("Process " + localProcessURL + " instantiated!");
+	                    print(silent, "Process " + localProcessURL + " instantiated!");
         			}
         		}
         	}
         	
             // Now wait until all processes are bound
-        	System.out.println("Waiting for all processes to be instantiated...");
+        	print(silent, "Waiting for all processes to be instantiated...");
         	while(takenProcesses.containsValue(false))
         	{
         		
@@ -154,7 +163,7 @@ public class ProcessStarter {
     	            	if(takenProcesses.containsKey(processName) && !takenProcesses.get(processName))
     	            	{
     	            		takenProcesses.put(processName, true);
-    	            		System.out.println("\tNew remote process bound: " + processName);
+    	            		print(silent, "\tNew remote process bound: " + processName);
     	            	}
     	            }
     	        }
@@ -177,18 +186,18 @@ public class ProcessStarter {
         		if(processURL.equals(ownProcessURL))
         		{
         			// Own process, start thread
-        			System.out.println("Added own process " + processURL);
+        			print(silent, "Added own process " + processURL);
         			processes.add(ownProcess);
         		}
         		else
         		{
         			// Not own process, look up
-        			System.out.println("Connecting to remote process " + processURL + "...");
+        			print(silent, "Connecting to remote process " + processURL + "...");
         			processes.add((DeProp_RMI) Naming.lookup(processURL));
         		}
         	}
         	
-        	System.out.println("Connected to all remote processes!");
+        	print(silent, "Connected to all remote processes!");
 
         	if(ownProcess != null)
         	{
@@ -204,7 +213,7 @@ public class ProcessStarter {
 	        
 	        
 
-		    System.out.println("Whole system is connected now");
+		    print(silent, "Whole system is connected now");
 	
 	        
 	    } catch (MalformedURLException | RemoteException | NotBoundException | AlreadyBoundException e) {

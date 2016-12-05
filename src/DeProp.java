@@ -74,6 +74,7 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	@Override
 	public ArrayList<Message> getReceivedMessages()
 	{
+		System.out.println("Somebody requested my received messages, which there are currently " + this.receivedMessages.size() + " of.");
 		return this.receivedMessages;
 	}
 	

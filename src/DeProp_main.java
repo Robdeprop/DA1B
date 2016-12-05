@@ -17,7 +17,7 @@ import java.util.Enumeration;
 public class DeProp_main {
 	
 	private static final int TOTAL_PROCESSES = 4;
-	private static final String[] ipAddressesInNetwork = {"localhost", "localhost"};
+	private static final String[] ipAddressesInNetwork = {"localhost", "localhost", "localhost", "localhost"};
 
     public static void main(String args[]) {
     	System.out.println("IP Addresses in the network that should run this code:");
