@@ -3,18 +3,13 @@
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class Message implements Serializable {
-	/**
-	 * 
-	 */
+
 	private static final long serialVersionUID = 1L;
 	private int senderIndex;
 	private int receiverIndex;
-	private long arrivalTime;
 	private int id;
-	private int delay;
 	private ArrayList<Integer> sendersLocalVectorClock;
 	private HashMap<Integer, ArrayList<Integer>> sendersLatestSentMessages;
 	

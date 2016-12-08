@@ -1,7 +1,6 @@
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
-import java.util.LinkedList;
 
 
 public interface DeProp_RMI extends Remote {

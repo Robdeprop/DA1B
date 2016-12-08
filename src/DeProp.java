@@ -1,22 +1,11 @@
-import java.rmi.registry.Registry;
-import java.rmi.registry.LocateRegistry;
 import java.io.Serializable;
-import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.MalformedURLException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
-import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -166,7 +155,6 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 		Iterator it = message.getSendersLatestSentMessages().entrySet().iterator();
 	    while (it.hasNext()) {
 	        Map.Entry<Integer, ArrayList<Integer>> pair = (Map.Entry<Integer, ArrayList<Integer>>)it.next();
-	        //System.out.println(pair.getKey() + " = " + pair.getValue());
 	        ArrayList<Integer> latestMessageLocalVectorClock = pair.getValue();
 	        int receiverId = pair.getKey();
 	        
@@ -250,7 +238,6 @@ public class DeProp implements DeProp_RMI, Runnable, Serializable {
 	        {
 	        	this.send(i, new Message(this.index, i, 1), 1000);
 	        }
-	        //it.remove(); // avoids a ConcurrentModificationException
 	    }
 	}
 

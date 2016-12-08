@@ -1,22 +1,11 @@
 
 
 
-import java.rmi.registry.Registry;
-import java.rmi.registry.LocateRegistry;
-import java.net.InetAddress;
-import java.net.InterfaceAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.rmi.RMISecurityManager;
 import java.rmi.RemoteException;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.Enumeration;
 
 public class DeProp_main {
-	
-	private static final int TOTAL_PROCESSES = 4;
+
 	private static final String[] ipAddressesInNetwork = {"localhost", "localhost", "localhost", "localhost"};
 
     public static void main(String args[]) {

@@ -1,10 +1,7 @@
 
 
 import java.net.InetAddress;
-import java.net.InterfaceAddress;
 import java.net.MalformedURLException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.Naming;
@@ -15,28 +12,17 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class ProcessStarter {
 
-    private static final String RMI_PREFIX = "rmi://";
+
     short ipNetworkPrefixLength = 22;
 
     private ArrayList<DeProp_RMI> processes;
-    private ArrayList<DeProp_RMI> localProcesses;
-    private Enumeration<NetworkInterface> networkInterfaces;
     private InetAddress inetAddress;
     String localIpAddress;
     private static final String PROCESS_PREFIX = "DePropSESProcess";
-    private static final int INSTANTIATION_DELAY = 10000;
-    
-    private ArrayList<String> ipAddressesInNetwork;
-    
-    private String ownProcessURL;
-    private int ownProcessIndex;
     private DeProp_RMI ownProcess = null;
 
     /**
@@ -61,7 +47,7 @@ public class ProcessStarter {
             inetAddress = InetAddress.getLocalHost();
             localIpAddress = inetAddress.getHostAddress();
         } catch (UnknownHostException e){
-            System.err.println("Cannot instantiate IP resolver");
+            System.err.println("IP could not be resolved");
             throw new RuntimeException(e);
         }
         
@@ -69,7 +55,6 @@ public class ProcessStarter {
         
         print(silent, "Your own IP is: " + localIpAddress);
         
-        //String[] processURLs = new String[totalProcesses];
         
         for(int i = 0; i < totalProcesses; i++)
         {
@@ -107,7 +92,6 @@ public class ProcessStarter {
         
         
         try {
-        	//print(silent, "Names bound to RMI registry at host " + host + " and port " + port + ":");
         	Registry registry;
         	String[] boundNames;
         	for(String ip : ipAddressesInNetwork)
@@ -141,7 +125,7 @@ public class ProcessStarter {
         				boundAProcess = true;
 	        			ownProcess = new DeProp(totalProcesses, localProcessURL, processURLs.indexOf(localProcessURL));
 	        			new Thread((DeProp) ownProcess).start();
-	        			Naming.bind(localProcessURL, (DeProp_RMI) UnicastRemoteObject.exportObject(ownProcess));
+	        			Naming.bind(localProcessURL, UnicastRemoteObject.exportObject(ownProcess));
 	        			ownProcessURL = localProcessURL;
 	                    print(silent, "Process " + localProcessURL + " instantiated!");
         			}
