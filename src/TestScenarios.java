@@ -1,29 +1,33 @@
-
+/**
+ * About:
+ * This file includes test scenarios. For each tests scenarios, certain messages are sent,
+ * a delay is introduced to make sure they are all received. Afterwards, (and as the tests scenarios are designed are known),
+ * the actual output is asserted with the expected output. If it passes >> all is good. If it doesn't, then there;s something wrong.
+ * Five scenarios are included, they test message ordering (with messages being forced to arrive in wrong order)
+ * Tests include testing the ordering in one way (e.g. process 1 to 2) and 
+ * two way messaging (proc 1 to 2 and 2 to 1). It also tests out communication between several processes
+ * (e.g. Proc 1, proc 2, and proc 3, etc..)
+ */
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
-public class TestFile {
+public class TestScenarios {
 	
 	private Setup setup;
-	private int testsPassed = 0;
-	private int testsDone = 0;
-	private int currentErrors = 0;
+	private int errors = 0;
 	
 	public static void main(String args[]) {
-		new TestFile();
+		new TestScenarios();
 	}
 	
-	public TestFile() {
-		testSystem();
-		testcase1();
-		testcase2();
-		testcase3();
-		testcase4();
-		testcase5();
-		testcase6();
-		
-		System.out.println(testsPassed + "/" + testsDone + " tests passed.");
+	public TestScenarios() {
+		systemTest();
+		testScenario1();
+		testScenario2();
+		testScenario3();
+		testScenario4();
+		testScenario5();
 	}
 	
 	public void assertEquals(int int1, int int2)
@@ -32,8 +36,8 @@ public class TestFile {
 		{
 			return;
 		}
-		currentErrors++;
-		System.err.println("ERROR: " + int1 + " was expected, but got " + int2);
+		errors++;
+		System.err.println("assertEquals err: " + int1 + " was expected, I recieved " + int2);
 	}
 	
 	public void assertTrue(Boolean bool)
@@ -42,36 +46,34 @@ public class TestFile {
 		{
 			return;
 		}
-		currentErrors++;
-		System.err.println("ERROR: true was expected, but got " + bool);
+		errors++;
+		System.err.println("assertTrue: recieved a false");
 	}
 	
 	public void testCompleted()
 	{
-		testsDone++;
-		if(currentErrors == 0)
+		if(errors == 0)
 		{
-			testsPassed++;
-			System.out.println("Test succesfully passed!");
+			System.out.println("pass!");
 		}
 		else
 		{
-			System.out.println("Test failed with " + currentErrors + " errors.");
+			System.out.println("fail!, produced" + errors + " failing errors.");
 		}
-		currentErrors = 0;
+		errors = 0;
 		
 		System.out.println("---");
 	}
 	
-	public void startTest(String testName)
+	public void startScenario(String testName)
 	{
 		init();
-		System.out.println("Starting test " +testName + ":");
+		System.out.println("Starting test scenario" +testName + ":");
 	}
 	
 	public void fail()
 	{
-		System.err.println("EXECUTION FAILED!");
+		System.err.println("scenario failed!");
 	}
 
 	
@@ -80,22 +82,23 @@ public class TestFile {
     }
     
     
-    /**
-     * P1 sends m1 to P2
-     * P1 sends m2 to P2 but m2 arrives before m1
+    /* 
+     * To test message ordering:
+     * process 1 will send message 1 to process 2, but a long delay will occur
+     * process 1 sends message 2 to process 2. message 2 arrives before message 1.
      */
-    public void testSystem(){
-    	startTest("Start Test: testSystem");
+    public void systemTest(){
+    	startScenario("systemTest");
         DeProp_RMI process1 = setup.getProcesses().get(0);
         DeProp_RMI process2 = setup.getProcesses().get(1);
         try{
             Message message1 = new Message(process1.getIndex(),process2.getIndex(), 1);
-            process1.send(process2.getIndex(), message1, 10);
+            process1.send(process2.getIndex(), message1, 10); // ,10 means the message is delayed by 10 milliseconds
 
             Message message2 = new Message(process1.getIndex(), process2.getIndex(), 2);
             process1.send(process2.getIndex(), message2, 0);
 
-            // Sleep at least the sum of all delays to be sure all messages have arrived.
+            // wait until all messages have arrived.
             Thread.sleep(20);
 
             ArrayList<Message> messages = process2.getReceivedMessages();
@@ -114,13 +117,14 @@ public class TestFile {
     }
     
     
-    /**
-     * P1 sends m1 to P2 
-     * P2 sends m2 to P3 
-     * P1 sends m3 to P3
+    /*
+     * Proc1 will send msg1 to Proc2 
+     * Proc2 will send msg2 to Proc3 
+     * Proc1 will send msg3 to Proc3
+     * Proc2 will send msg4 to Proc3
      */
-    public void testcase1(){
-    	startTest("Start Test: testcase1");
+    public void testScenario1(){
+    	startScenario("testScenario1");
         DeProp_RMI process1 = setup.getProcesses().get(0);
         DeProp_RMI process2 = setup.getProcesses().get(1);
         DeProp_RMI process3 = setup.getProcesses().get(2);
@@ -135,7 +139,10 @@ public class TestFile {
             Message message3  = new Message(process2.getIndex(), process3.getIndex(), 3);
             process1.send(process3.getIndex(),message3, 20);
             
-            // Sleep at least the sum of all delays to be sure all messages have arrived.
+            Message message4  = new Message(process2.getIndex(), process3.getIndex(), 4);
+            process2.send(process3.getIndex(), message4, 30);
+            
+            // wait until all messages have arrived.
             Thread.sleep(50);
 
             ArrayList<Message> messagesProcess2 = process2.getReceivedMessages();            
@@ -146,6 +153,7 @@ public class TestFile {
             assertEquals(2, messagesProcess3.size());
             assertEquals(message2.getId(), messagesProcess3.get(0).getId());
             assertEquals(message3.getId(), messagesProcess3.get(1).getId());
+            assertEquals(message4.getId(), messagesProcess3.get(2).getId());
 
         } catch (RemoteException e){
             e.printStackTrace();
@@ -158,11 +166,8 @@ public class TestFile {
     }
     
     
-    /**
-     * Figure 3.5 of lecture notes.
-     */
-    public void testcase2(){
-    	startTest("Start Test: testcase2");
+    public void testScenario2(){
+    	startScenario("testScenario2");
         DeProp_RMI process1 = setup.getProcesses().get(0);
         DeProp_RMI process2 = setup.getProcesses().get(1);
         DeProp_RMI process3 = setup.getProcesses().get(2);
@@ -174,12 +179,13 @@ public class TestFile {
             Message message2 = new Message(process1.getIndex(), process2.getIndex(), 2);
             process1.send(process2.getIndex(), message2, 10);
             
+            //delay between msg2 and msg 3
             Thread.sleep(20);
             
             Message message3 = new Message(process2.getIndex(), process3.getIndex(), 3);
             process2.send(process3.getIndex(), message3, 0);
             
-            // Sleep at least the sum of all delays to be sure all messages have arrived.
+            // wait until all messages have arrived.
             Thread.sleep(1500);
 
             ArrayList<Message> messagesProcess2 = process2.getReceivedMessages();
@@ -188,11 +194,6 @@ public class TestFile {
             
             ArrayList<Message> messagesProcess3 = process3.getReceivedMessages();
             assertEquals(2, messagesProcess3.size());
-            
-            for (int i=0; i < messagesProcess3.size(); i++)
-            {
-            	System.out.println("messagesProcess3.get(" + i + ").getId(): " + messagesProcess3.get(i).getId());
-            }
             
             assertEquals(message1.getId(), messagesProcess3.get(0).getId());
             assertEquals(message3.getId(), messagesProcess3.get(1).getId());
@@ -208,13 +209,15 @@ public class TestFile {
     }
     
     
-    /**
-     * P1 sends m1 to P2
-	 * P2 sends m2 to P3
-	 * P1 sends m3 to P3 but m3 arrives before m2
+    /*
+     * Tests ordering of messages in the other way
+     * Proc1 will send msg1 to Proc2
+	 * Proc2 will send msg2 to Proc3, but delayed to after 3
+	 * Proc1 will send msg3 to Proc3
      */
-    public void testcase3(){
-    	startTest("Start Test: testcase3");
+    
+    public void testScenario3(){
+    	startScenario("testScenario3");
         DeProp_RMI process1 = setup.getProcesses().get(0);
         DeProp_RMI process2 = setup.getProcesses().get(1);
         DeProp_RMI process3 = setup.getProcesses().get(2);
@@ -229,7 +232,7 @@ public class TestFile {
             Message message3 = new Message(process1.getIndex(), process3.getIndex(), 3);
             process1.send(process3.getIndex(), message3, 20);
             
-            // Sleep atleast the sum of all delays to be sure all messages have arrived.
+            // wait until all messages have arrived.
             Thread.sleep(150);
 
             ArrayList<Message> messagesProcess2 = process2.getReceivedMessages();
@@ -254,24 +257,20 @@ public class TestFile {
     }
     
     
-    /**
-     * P1 sends m1 to P2
-	 * P1 sends m2 to P2 but m2 arrives before m1
-     */
-    public void testcase4(){
-    	startTest("Start Test: testcase4");
+    public void testScenario4(){
+    	startScenario("testScenario4");
         DeProp_RMI process1 = setup.getProcesses().get(0);
         DeProp_RMI process2 = setup.getProcesses().get(1);
 
         try{
-        	// This message, m1, will arrive after, m2, thus late.
+        	// message 1 arrives after message 2s
             Message message1 = new Message(process1.getIndex(),process2.getIndex(), 1);
             process1.send(process2.getIndex(), message1, 20);
 
             Message message2 = new Message(process1.getIndex(), process2.getIndex(), 2);
             process1.send(process2.getIndex(), message2, 0);
             
-            // Sleep at least the sum of all delays to be sure all messages have arrived.
+            // wait until all messages have arrived.
             Thread.sleep(150);
 
             ArrayList<Message> messagesProcess2 = process2.getReceivedMessages();
@@ -291,19 +290,14 @@ public class TestFile {
     }
 
     
-    /**
-     * P1 sends m1 to P2
-	 * P1 sends m2 to P2 but m2 arrives before m1 and m2 depends on m1
-	 * P2 sends m3 to P3
-     */
-    public void testcase5(){
-    	startTest("Start Test: testcase5");
+    public void testScenario5(){
+    	startScenario("testScenario5");
         DeProp_RMI process1 = setup.getProcesses().get(0);
         DeProp_RMI process2 = setup.getProcesses().get(1);
         DeProp_RMI process3 = setup.getProcesses().get(2);
 
         try{
-        	// This message, m1, will arrive after, m2, thus late.
+        	// message 1 arrives after message 2
             Message message1 = new Message(process1.getIndex(),process2.getIndex(), 1);
             process1.send(process2.getIndex(), message1, 20);
 
@@ -313,7 +307,7 @@ public class TestFile {
             Message message3 = new Message(process2.getIndex(), process3.getIndex(), 3);
             process2.send(process3.getIndex(), message3, 10);
             
-            // Sleep at least the sum of all delays to be sure all messages have arrived.
+            // wait until all messages are received
             Thread.sleep(150);
 
             ArrayList<Message> messagesProcess2 = process2.getReceivedMessages();
@@ -337,69 +331,4 @@ public class TestFile {
         testCompleted();
     }
     
-    
-    /**
-	 * See Figure 5 in "A New Algorithm to Implement Causal Ordering."
-     */
-    public void testcase6(){
-    	startTest("Start Test: testcase6");
-        DeProp_RMI process1 = setup.getProcesses().get(0);
-        DeProp_RMI process2 = setup.getProcesses().get(1);
-        DeProp_RMI process3 = setup.getProcesses().get(2);
-        DeProp_RMI process4 = setup.getProcesses().get(3);
-
-        try{
-        	// Messages of S1 (= process1)
-            Message message1 = new Message(process1.getIndex(),process3.getIndex(), 1);
-            process1.send(process3.getIndex(), message1, 60);
-
-            Message message2 = new Message(process1.getIndex(), process2.getIndex(), 2);
-            process1.send(process2.getIndex(), message2, 10);
-            
-            Message message3 = new Message(process1.getIndex(), process4.getIndex(), 3);
-            process1.send(process4.getIndex(), message3, 40);
-            
-            Thread.sleep(20);
-            
-            // Messages of S2 (= process2)
-            Message message4 = new Message(process2.getIndex(),process3.getIndex(), 4);
-            process2.send(process3.getIndex(), message4, 0);
-
-            Message message5 = new Message(process2.getIndex(), process4.getIndex(), 5);
-            process2.send(process4.getIndex(), message5, 0);
-            
-            Thread.sleep(20);
-            
-            // Messages of S4 (= process4)
-            Message message6 = new Message(process4.getIndex(), process3.getIndex(), 6);
-            process4.send(process3.getIndex(), message6, 0);
-            
-            // Sleep at least the sum of all delays to be sure all messages have arrived.
-            Thread.sleep(300);
-
-            ArrayList<Message> messagesProcess2 = process2.getReceivedMessages();
-            assertEquals(1, messagesProcess2.size());
-            assertEquals(message2.getId(), messagesProcess2.get(0).getId());
-            
-            ArrayList<Message> messagesProcess3 = process3.getReceivedMessages();
-            assertEquals(3, messagesProcess3.size());
-            assertEquals(message1.getId(), messagesProcess3.get(0).getId());
-            assertTrue(message4.getId() == messagesProcess3.get(1).getId());
-            assertEquals(message6.getId(), messagesProcess3.get(2).getId());
-                        
-            ArrayList<Message> messagesProcess4 = process4.getReceivedMessages();
-            assertEquals(2, messagesProcess4.size());
-            assertEquals(message5.getId(), messagesProcess4.get(0).getId());
-            assertEquals(message3.getId(), messagesProcess4.get(1).getId());
-            
-            
-        } catch (RemoteException e){
-            e.printStackTrace();
-            fail();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            fail();
-		}
-        testCompleted();
-    }
 }
